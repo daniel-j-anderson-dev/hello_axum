@@ -15,9 +15,9 @@ const FILE_PATHS: &[&str] = &[
 
 pub fn initialize_stdout_subscriber() {
     if let Err(e) = tracing_subscriber::fmt::Subscriber::builder()
-            .with_max_level(Level::TRACE)
-            .with_writer(std::io::stdout)
-            .try_init()
+        .with_max_level(Level::TRACE)
+        .with_writer(std::io::stdout)
+        .try_init()
     {
         debug!("Failed to initialize subscriber: {}", e);
     }
@@ -27,7 +27,10 @@ pub fn initialize_stdout_subscriber() {
 async fn serve_files() {
     initialize_stdout_subscriber();
 
-    tokio::spawn(server::host_files_with_index(DEFAULT_HOST_IP, DEFAULT_ROOT_DIR.into()));
+    tokio::spawn(server::host_files_with_index(
+        DEFAULT_HOST_IP,
+        DEFAULT_ROOT_DIR.into(),
+    ));
     sleep(Duration::from_millis(100)).await;
 
     let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_IP)).unwrap();
