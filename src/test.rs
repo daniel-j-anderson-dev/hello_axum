@@ -1,4 +1,4 @@
-use std::{sync::Once, time::Duration};
+use std::time::Duration;
 
 use tokio::time::sleep;
 use tracing::{debug, error, warn};
@@ -14,14 +14,13 @@ const FILE_PATHS: &[&str] = &[
 ];
 
 pub fn initialize_stdout_subscriber() {
-    static INIT: Once = Once::new();
-
-    INIT.call_once(|| {
-        tracing_subscriber::fmt::Subscriber::builder()
+    if let Err(e) = tracing_subscriber::fmt::Subscriber::builder()
             .with_max_level(Level::TRACE)
             .with_writer(std::io::stdout)
-            .init();
-    });
+            .try_init()
+    {
+        debug!("Failed to initialize subscriber: {}", e);
+    }
 }
 
 #[tokio::test]
