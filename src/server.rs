@@ -24,7 +24,7 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
     let router = Router::new()
         .route("/", get(handlers::root_index))
         .route("/*file_path", get(handlers::serve_file))
-        .with_state(root_dir.to_owned());
+        .with_state(root_dir);
 
     axum::serve(listener, router).await?;
 
