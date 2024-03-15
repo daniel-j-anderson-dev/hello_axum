@@ -18,6 +18,7 @@ pub async fn tower_serve_dir(host_ip: &str, root_dir: &str) -> Result<(), std::i
     return Ok(());
 }
 
+/// A simple server with similar functionality to [tower_http::services::ServeDir] using my [handlers] module instead
 pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(host_ip).await?;
 
@@ -31,6 +32,13 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
     return Ok(());
 }
 
+/// A REST API server
+/// # Endpoints
+/// - POST: /create-url
+///   - Params: long-url
+///   - Status code: 201 Accepted
+/// - GET: /{short-url}
+///   - Status code: 301 Permanent Redirect
 pub async fn tiny_url(host_ip: &str, ) -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(host_ip).await?;
 
