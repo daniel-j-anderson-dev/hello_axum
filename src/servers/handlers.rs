@@ -1,16 +1,8 @@
-//! This module contains axum handlers
+//! This module contains some general axum route handlers and helpers
 
-use axum::{
-    debug_handler,
-    extract::{Path, Request, State},
-    http::{request, StatusCode},
-    response::Response,
-    Json,
-};
-use serde::Deserialize;
+use axum::{debug_handler, extract::Path, http::StatusCode, response::Response, Extension};
 use tokio::{fs::File, io::AsyncReadExt};
-use tracing::{debug, error, info};
-use url::Url;
+use tracing::{debug, error};
 
 /// Return the file data or a status code.
 /// - This function logs any status code returned with [warn]
@@ -36,12 +28,12 @@ pub async fn open_file(file_path: &str) -> Result<Vec<u8>, StatusCode> {
 #[debug_handler]
 /// Try to return a file in a response body. Use [tower_http::services::ServeDir] instead
 pub async fn serve_file(
-    State(root_dir): State<String>,
+    Extension(root_dir): Extension<String>,
     Path(file_path): Path<String>,
 ) -> Result<Response, StatusCode> {
     let file_path = format!("{}/{}", root_dir, file_path);
 
-    info!("File requested ({})", file_path);
+    debug!("File requested ({})", file_path);
 
     let file_data = open_file(&file_path).await?;
 
@@ -53,10 +45,10 @@ pub async fn serve_file(
 }
 
 #[debug_handler]
-pub async fn root_index(State(root_dir): State<String>) -> Result<Response, StatusCode> {
+pub async fn root_index(Extension(root_dir): Extension<String>) -> Result<Response, StatusCode> {
     let file_path = format!("{}/index.html", root_dir);
 
-    info!("Root index requested ({})", file_path);
+    debug!("Root index requested ({})", file_path);
 
     let file_data = open_file(&file_path).await?;
 
@@ -65,14 +57,4 @@ pub async fn root_index(State(root_dir): State<String>) -> Result<Response, Stat
     debug!("Returning root_index ({})", file_path);
 
     return Ok(response);
-}
-
-#[derive(Debug, Deserialize)]
-pub struct CreateUrlParams(pub Url);
-
-#[debug_handler]
-pub async fn create_url(
-    Json(CreateUrlParams(long_url)): Json<CreateUrlParams>,
-) -> Result<Response, StatusCode> {
-    todo!();
 }
