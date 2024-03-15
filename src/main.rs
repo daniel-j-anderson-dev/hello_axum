@@ -12,7 +12,7 @@ const DEFAULT_ROOT_DIR: &str = "web";
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     tracing_subscriber::fmt()
-        .with_max_level(Level::TRACE)
+        .with_max_level(Level::DEBUG)
         .init();
 
     let host_ip = env::args().nth(1).unwrap_or(DEFAULT_HOST_IP.into());
@@ -20,7 +20,8 @@ async fn main() -> Result<(), std::io::Error> {
 
     info!("Listening on serving {} on {}", root_directory, host_ip);
 
-    server::tower_serve_dir(&host_ip, &root_directory).await?;
+    server::host_files_with_index(&host_ip, root_directory).await?;
+    // server::tower_serve_dir(&host_ip, &root_directory).await?;
 
     return Ok(());
 }
