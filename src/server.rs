@@ -2,7 +2,10 @@
 
 mod handlers;
 
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use tokio::net::TcpListener;
 
 /// A simple server only using the [tower_http::services::ServeDir] middleware as a nest_service
@@ -39,10 +42,10 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
 ///   - Status code: 201 Accepted
 /// - `GET /{short-url}`
 ///   - Status code: 301 Permanent Redirect
-pub async fn tiny_url(host_ip: &str, ) -> Result<(), std::io::Error> {
+pub async fn tiny_url(host_ip: &str) -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(host_ip).await?;
 
-    let router = Router::new();
+    let router = Router::new().route("/create-url", post(handlers::create_url));
 
     axum::serve(listener, router).await?;
 
