@@ -30,3 +30,13 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
 
     return Ok(());
 }
+
+pub async fn tiny_url(host_ip: &str, ) -> Result<(), std::io::Error> {
+    let listener = TcpListener::bind(host_ip).await?;
+
+    let router = Router::new();
+
+    axum::serve(listener, router).await?;
+
+    return Ok(());
+}
