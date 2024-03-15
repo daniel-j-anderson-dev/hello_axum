@@ -1,7 +1,7 @@
 use std::{sync::Once, time::Duration};
 
 use tokio::time::sleep;
-use tracing::{error, trace, warn};
+use tracing::{error, warn};
 
 use super::*;
 
