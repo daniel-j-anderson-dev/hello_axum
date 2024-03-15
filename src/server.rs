@@ -34,10 +34,10 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
 
 /// A REST API server to minimize urls
 /// # Endpoints
-/// - POST: /create-url
+/// - `POST /create-url`
 ///   - Params: long-url
 ///   - Status code: 201 Accepted
-/// - GET: /{short-url}
+/// - `GET /{short-url}`
 ///   - Status code: 301 Permanent Redirect
 pub async fn tiny_url(host_ip: &str, ) -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(host_ip).await?;
