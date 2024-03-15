@@ -1,4 +1,4 @@
-//!
+//! This module contains axum handlers
 
 use axum::{
     debug_handler,
