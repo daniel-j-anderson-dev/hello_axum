@@ -4,7 +4,7 @@ use axum::{
     debug_handler,
     extract::{Path, State},
     http::StatusCode,
-    response::{Html, Response},
+    response::Response,
 };
 use tokio::{fs::File, io::AsyncReadExt};
 use tracing::{debug, info, warn};
