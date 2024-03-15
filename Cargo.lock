@@ -374,11 +374,13 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "httpc-test",
+ "serde",
  "tokio",
  "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]
@@ -1471,6 +1473,7 @@ dependencies = [
  "form_urlencoded",
  "idna 0.5.0",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
