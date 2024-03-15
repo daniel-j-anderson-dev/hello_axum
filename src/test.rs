@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use tokio::time::sleep;
-use tracing::{debug, error, warn};
+use tracing::{debug, error, info, warn, Level};
 
 use super::*;
 
@@ -27,7 +27,7 @@ pub fn initialize_stdout_subscriber() {
 async fn serve_files() {
     initialize_stdout_subscriber();
 
-    tokio::spawn(server::host_files_with_index(
+    tokio::spawn(servers::host_files_with_index(
         DEFAULT_HOST_IP,
         DEFAULT_ROOT_DIR.into(),
     ));
@@ -55,7 +55,7 @@ async fn serve_files() {
 async fn tower_serve_dir() {
     initialize_stdout_subscriber();
 
-    tokio::spawn(server::tower_serve_dir(DEFAULT_HOST_IP, DEFAULT_ROOT_DIR));
+    tokio::spawn(servers::tower_serve_dir(DEFAULT_HOST_IP, DEFAULT_ROOT_DIR));
     sleep(Duration::from_millis(100)).await;
 
     let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_IP)).unwrap();

@@ -1,13 +1,7 @@
-mod server;
-#[cfg(test)]
-mod test;
-
 use std::env;
 
+use hello_axum::{servers, DEFAULT_HOST_IP, DEFAULT_ROOT_DIR};
 use tracing::{info, Level};
-
-const DEFAULT_HOST_IP: &str = "localhost:8080";
-const DEFAULT_ROOT_DIR: &str = "web";
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -20,7 +14,7 @@ async fn main() -> Result<(), std::io::Error> {
 
     info!("Listening on serving {} on {}", root_directory, host_ip);
 
-    server::host_files_with_index(&host_ip, root_directory).await?;
+    servers::host_files_with_index(&host_ip, root_directory).await?;
     // server::tower_serve_dir(&host_ip, &root_directory).await?;
 
     return Ok(());

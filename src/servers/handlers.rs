@@ -74,6 +74,5 @@ pub struct CreateUrlParams(pub Url);
 pub async fn create_url(
     Json(CreateUrlParams(long_url)): Json<CreateUrlParams>,
 ) -> Result<Response, StatusCode> {
-    
     todo!();
 }
