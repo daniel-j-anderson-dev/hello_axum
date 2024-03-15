@@ -1,7 +1,7 @@
 use std::{sync::Once, time::Duration};
 
 use tokio::time::sleep;
-use tracing::{error, warn};
+use tracing::{debug, error, warn};
 
 use super::*;
 
@@ -18,6 +18,7 @@ pub fn initialize_stdout_subscriber() {
 
     INIT.call_once(|| {
         tracing_subscriber::fmt::Subscriber::builder()
+            .with_max_level(Level::TRACE)
             .with_writer(std::io::stdout)
             .init();
     });
@@ -27,9 +28,7 @@ pub fn initialize_stdout_subscriber() {
 async fn serve_files() {
     initialize_stdout_subscriber();
 
-    let root_dir = format!("{}/assets", DEFAULT_ROOT_DIR);
-
-    tokio::spawn(server::host_files_with_index(DEFAULT_HOST_IP, root_dir.clone()));
+    tokio::spawn(server::host_files_with_index(DEFAULT_HOST_IP, DEFAULT_ROOT_DIR.into()));
     sleep(Duration::from_millis(100)).await;
 
     let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_IP)).unwrap();
@@ -45,6 +44,8 @@ async fn serve_files() {
         if !response.status().is_success() {
             error!("Response failed!");
         }
+
+        debug!("response status: {}", response.status());
     }
 }
 
@@ -68,5 +69,7 @@ async fn tower_serve_dir() {
         if !response.status().is_success() {
             error!("Response failed!");
         }
+
+        debug!("response status: {}", response.status());
     }
 }
