@@ -2,7 +2,7 @@
 
 mod handlers;
 
-use axum::{response::Html, routing::get, Router};
+use axum::{routing::get, Router};
 use tokio::net::TcpListener;
 
 /// A simple server only using the [tower_http::services::ServeDir] middleware as a nest_service
