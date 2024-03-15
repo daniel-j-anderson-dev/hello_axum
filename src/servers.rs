@@ -1,6 +1,7 @@
 //! This module is a collection of functions that call [axum::serve] with a variety of contracts
 
 mod handlers;
+mod tiny_url;
 
 use axum::{
     routing::{get, post},
@@ -29,23 +30,6 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
         .route("/", get(handlers::root_index))
         .route("/*file_path", get(handlers::serve_file))
         .with_state(root_dir);
-
-    axum::serve(listener, router).await?;
-
-    return Ok(());
-}
-
-/// A REST API server to minimize urls
-/// # Endpoints
-/// - `POST /create-url`
-///   - Params: long-url
-///   - Status code: 201 Accepted
-/// - `GET /{short-url}`
-///   - Status code: 301 Permanent Redirect
-pub async fn tiny_url(host_ip: &str) -> Result<(), std::io::Error> {
-    let listener = TcpListener::bind(host_ip).await?;
-
-    let router = Router::new().route("/create-url", post(handlers::create_url));
 
     axum::serve(listener, router).await?;
 
