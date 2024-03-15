@@ -32,7 +32,7 @@ pub async fn host_files_with_index(host_ip: &str, root_dir: String) -> Result<()
     return Ok(());
 }
 
-/// A REST API server
+/// A REST API server to minimize urls
 /// # Endpoints
 /// - POST: /create-url
 ///   - Params: long-url
