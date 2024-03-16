@@ -25,7 +25,10 @@ pub async fn tower_serve_dir(host_addr: SocketAddr, root_dir: &str) -> Result<()
 }
 
 /// A simple server with similar functionality to [tower_http::services::ServeDir] using my [handlers] module instead
-pub async fn host_files_with_index(host_addr: SocketAddr, root_dir: String) -> Result<(), std::io::Error> {
+pub async fn host_files_with_index(
+    host_addr: SocketAddr,
+    root_dir: String,
+) -> Result<(), std::io::Error> {
     let listener = TcpListener::bind(host_addr).await?;
 
     let router = Router::new()
