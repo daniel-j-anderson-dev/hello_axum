@@ -1,7 +1,7 @@
 //! This module is a collection of functions that call [axum::serve] with a variety of contracts
 
-mod handlers;
-mod tiny_url;
+pub mod handlers;
+pub mod tiny_url;
 
 use axum::{
     routing::{get, post},
