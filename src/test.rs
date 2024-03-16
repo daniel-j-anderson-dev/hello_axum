@@ -75,3 +75,13 @@ async fn tower_serve_dir() {
         debug!("response status: {}", response.status());
     }
 }
+
+#[tokio::test]
+async fn tiny_url() {
+    initialize_stdout_subscriber();
+
+    servers::tiny_url::TinyUrlServer::from_env_or_default()
+        .run()
+        .await
+        .unwrap();
+}
