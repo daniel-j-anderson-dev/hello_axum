@@ -28,12 +28,12 @@ async fn serve_files() {
     initialize_stdout_subscriber();
 
     tokio::spawn(servers::host_files_with_index(
-        DEFAULT_HOST_IP,
+        DEFAULT_HOST_ADDRESS,
         DEFAULT_ROOT_DIR.into(),
     ));
     sleep(Duration::from_millis(100)).await;
 
-    let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_IP)).unwrap();
+    let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_ADDRESS)).unwrap();
 
     for file_path in FILE_PATHS {
         info!("trying to get {}", file_path);
@@ -55,10 +55,10 @@ async fn serve_files() {
 async fn tower_serve_dir() {
     initialize_stdout_subscriber();
 
-    tokio::spawn(servers::tower_serve_dir(DEFAULT_HOST_IP, DEFAULT_ROOT_DIR));
+    tokio::spawn(servers::tower_serve_dir(DEFAULT_HOST_ADDRESS, DEFAULT_ROOT_DIR));
     sleep(Duration::from_millis(100)).await;
 
-    let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_IP)).unwrap();
+    let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_ADDRESS)).unwrap();
 
     for file_path in FILE_PATHS {
         info!("trying to get {}", file_path);
