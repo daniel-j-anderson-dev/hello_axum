@@ -14,8 +14,9 @@ tower-http = { version = "0.5.2", features = ["fs"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 url = { version = "2.5.0", features = ["serde"] }
+reqwest = "0.11.26"
+random-string = "1.1.0"
 
 [dev-dependencies]
 httpc-test = "0.1.9"
 serde_json = { version = "1.0.114", features = ["std"] }
-reqwest = "0.11.26"
