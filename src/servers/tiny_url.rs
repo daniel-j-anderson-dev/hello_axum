@@ -14,20 +14,14 @@ use serde::Deserialize;
 use tracing::{debug, error, trace};
 use url::Url;
 
-use crate::{servers::*, DEFAULT_HOST_ADDRESS};
+use crate::{servers::*, LOCAL_HOST_8080};
 
 /// A REST API server to minimize urls
 /// # Endpoints
-/// - `POST /create-url`
-///   - body json:
-///     ```json
-///     {
-///         "long-url": "your/long/url/that/needs/shortening"
-///     }
-///     ```
+/// - `POST /create-url/?long-url=https://your/long/url/here.html`
 ///   - Returns
 ///     - Status code: 201 Accepted
-///     - Status code:
+///     - The short url as text in the body
 /// - `GET /{short-url}`
 ///   - Status code: 301 Permanent Redirect
 pub struct TinyUrlServer {
@@ -42,7 +36,7 @@ impl TinyUrlServer {
                 .and_then(|s| {
                     return s.parse().ok();
                 })
-                .unwrap_or(DEFAULT_HOST_ADDRESS),
+                .unwrap_or(LOCAL_HOST_8080),
             long_to_tiny_map: HashMap::new(),
         };
     }
@@ -80,7 +74,7 @@ impl TinyUrlServer {
 impl Default for TinyUrlServer {
     fn default() -> Self {
         return Self {
-            host_address: DEFAULT_HOST_ADDRESS,
+            host_address: LOCAL_HOST_8080,
             long_to_tiny_map: HashMap::new(),
         };
     }
@@ -179,6 +173,8 @@ pub async fn redirect_tiny_url(
         .ok_or(StatusCode::NOT_FOUND)?;
 
     let redirect = Redirect::permanent(long_url.to_string().as_str());
+
+    trace!("{:?}", redirect);
 
     return Ok(redirect);
 }
