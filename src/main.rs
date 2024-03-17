@@ -1,6 +1,6 @@
 use std::env;
 
-use hello_axum::{servers::{self, tiny_url::TinyUrlServer}, DEFAULT_HOST_ADDRESS, DEFAULT_ROOT_DIR};
+use hello_axum::{servers::tiny_url::TinyUrlServer, DEFAULT_HOST_ADDRESS};
 use tracing::{info, Level};
 
 #[tokio::main]
@@ -12,8 +12,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let host_addr = env::args()
         .nth(1)
         .unwrap_or(DEFAULT_HOST_ADDRESS.to_string());
-        // .parse()?;
-    let root_directory = env::args().nth(2).unwrap_or(DEFAULT_ROOT_DIR.into());
+    // .parse()?;
+    // let root_directory = env::args().nth(2).unwrap_or(DEFAULT_ROOT_DIR.into());
 
     info!("Listening on {}", host_addr);
 
