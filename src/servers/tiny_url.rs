@@ -4,9 +4,14 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use axum::{debug_handler, extract::{Path, State}, http::StatusCode, response::Response, Json};
+use axum::{
+    debug_handler,
+    extract::{Path, Query, State},
+    http::StatusCode,
+    response::{Redirect, Response},
+};
 use serde::Deserialize;
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 use url::Url;
 
 use crate::{servers::*, DEFAULT_HOST_ADDRESS};
@@ -27,7 +32,7 @@ use crate::{servers::*, DEFAULT_HOST_ADDRESS};
 ///   - Status code: 301 Permanent Redirect
 pub struct TinyUrlServer {
     host_address: SocketAddr,
-    long_to_tiny_map: HashMap<Url, Url>,
+    long_to_tiny_map: HashMap<Url, String>,
 }
 impl TinyUrlServer {
     pub fn from_env_or_default() -> Self {
@@ -60,14 +65,12 @@ impl TinyUrlServer {
     }
 
     pub async fn run(self) -> Result<(), std::io::Error> {
-        let listener = TcpListener::bind(self.host_address).await?;
-
-        let long_to_tiny_map = Arc::new(Mutex::new(self.long_to_tiny_map));
+        let listener = TcpListener::bind(&self.host_address).await?;
 
         let router = Router::new()
-            .route("/create-url", post(create_url))
+            .route("/create-url/", post(create_entry))
             .route("/*tiny-url", get(redirect_tiny_url))
-            .with_state(long_to_tiny_map);
+            .with_state(AppData::from(self));
 
         axum::serve(listener, router).await?;
 
@@ -83,59 +86,79 @@ impl Default for TinyUrlServer {
     }
 }
 
-pub fn minify_url(long_url: &Url) -> Url {
-    // TODO: FIXME
-    return long_url.clone();
+pub fn generate_suffix() -> String {
+    let charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let suffix = random_string::generate(5, charset);
+    return suffix;
 }
 
-pub type TinyUrlMap = Arc<Mutex<HashMap<Url, Url>>>;
+#[derive(Debug, Clone)]
+pub struct AppData(Arc<Mutex<HashMap<Url, String>>>, Arc<SocketAddr>);
+impl From<TinyUrlServer> for AppData {
+    fn from(value: TinyUrlServer) -> Self {
+        return Self(
+            Arc::new(Mutex::new(value.long_to_tiny_map)),
+            Arc::new(value.host_address),
+        );
+    }
+}
 
 #[derive(Debug, Deserialize)]
 pub struct Params {
     #[serde(alias = "long-url")]
-    pub long_url: Url,
+    long_url: Url,
 }
 
 #[debug_handler]
-pub async fn create_url(
-    State(long_to_tiny_map): State<TinyUrlMap>,
-    Json(Params { long_url }): Json<Params>,
+pub async fn create_entry(
+    State(AppData(long_to_tiny_map, host_addr)): State<AppData>,
+    Query(Params { long_url }): Query<Params>,
 ) -> Result<Response<String>, StatusCode> {
     debug!("POST /create-url {}", long_url);
 
-    let tiny_url = minify_url(&long_url);
+    // let long_url = long_url.parse().map_err(|e| {
+    //     error!("Failed to parse long_url: {}", e);
+    //     StatusCode::BAD_REQUEST
+    // })?;
 
-    let mut long_to_tiny_map = match long_to_tiny_map.try_lock() {
-        Ok(lock) => lock,
-        Err(e) => {
-            error!("Failed to to lock big_to_tiny_map: {}", e);
-            return Err(StatusCode::INTERNAL_SERVER_ERROR);
-        }
-    };
+    let suffix = generate_suffix();
+
+    let mut long_to_tiny_map = long_to_tiny_map.try_lock().map_err(|e| {
+        error!("Failed to to lock big_to_tiny_map: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    let tiny_url = format!("http://{}/{}", host_addr, suffix)
+        .parse::<Url>()
+        .map_err(|e| {
+            error!("Failed to parse tiny_url: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    debug!("Added {} -> {}", tiny_url, long_url);
 
     match long_to_tiny_map.entry(long_url) {
         Entry::Occupied(o_e) => {
-            debug!("Entry already made shortened url: \"{}\"", o_e.get());
+            debug!("Entry already made suffix: \"{}\"", o_e.get());
         }
         Entry::Vacant(v_e) => {
-            debug!("Added {{ \"{}\": \"{}\" }}", v_e.key(), tiny_url);
-            v_e.insert(tiny_url.clone());
+            v_e.insert(suffix);
         }
     };
 
     let mut response = Response::new(tiny_url.to_string());
     *response.status_mut() = StatusCode::CREATED;
 
-    debug!("{:?}", response);
+    trace!("{:?}", response);
 
     return Ok(response);
 }
 
 #[debug_handler]
 pub async fn redirect_tiny_url(
-    State(long_to_tiny_map): State<TinyUrlMap>,
+    State(AppData(long_to_tiny_map, _)): State<AppData>,
     Path(tiny_url): Path<String>,
-) -> Result<Response<String>, StatusCode> {
+) -> Result<Redirect, StatusCode> {
     let long_to_tiny_map = match long_to_tiny_map.try_lock() {
         Ok(lock) => lock,
         Err(e) => {
@@ -146,13 +169,16 @@ pub async fn redirect_tiny_url(
 
     let long_url = long_to_tiny_map
         .iter()
-        .find_map(|(k, v)| if v.to_string() == tiny_url {Some(k)} else {None})
+        .find_map(|(long_url, suffix)| {
+            if suffix.as_str() == tiny_url.as_str() {
+                Some(long_url)
+            } else {
+                None
+            }
+        })
         .ok_or(StatusCode::NOT_FOUND)?;
 
-    let mut response = Response::new(long_url.to_string());
-    *response.status_mut() = StatusCode::PERMANENT_REDIRECT;
+    let redirect = Redirect::permanent(long_url.to_string().as_str());
 
-    debug!("{:?}", response);
-
-    return Ok(response);
+    return Ok(redirect);
 }
