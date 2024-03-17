@@ -14,27 +14,17 @@ const FILE_PATHS: &[&str] = &[
     "/assets/sleepy_duck.gif",
 ];
 
-pub fn initialize_stdout_subscriber() {
-    if let Err(e) = tracing_subscriber::fmt::Subscriber::builder()
-        .with_max_level(Level::DEBUG)
-        .with_writer(std::io::stdout)
-        .try_init()
-    {
-        debug!("Failed to initialize subscriber: {}", e);
-    }
-}
-
 #[tokio::test]
 async fn serve_files() {
-    initialize_stdout_subscriber();
+    initialize_stdout_subscriber(Level::DEBUG);
 
     tokio::spawn(servers::host_files_with_index(
-        DEFAULT_HOST_ADDRESS,
+        LOCAL_HOST_8080,
         DEFAULT_ROOT_DIR.into(),
     ));
     sleep(Duration::from_millis(100)).await;
 
-    let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_ADDRESS)).unwrap();
+    let http_client = httpc_test::new_client(format!("http://{}", LOCAL_HOST_8080)).unwrap();
 
     for file_path in FILE_PATHS {
         info!("trying to get {}", file_path);
@@ -54,15 +44,12 @@ async fn serve_files() {
 
 #[tokio::test]
 async fn tower_serve_dir() {
-    initialize_stdout_subscriber();
+    initialize_stdout_subscriber(Level::DEBUG);
 
-    tokio::spawn(servers::tower_serve_dir(
-        DEFAULT_HOST_ADDRESS,
-        DEFAULT_ROOT_DIR,
-    ));
+    tokio::spawn(servers::tower_serve_dir(LOCAL_HOST_8080, DEFAULT_ROOT_DIR));
     sleep(Duration::from_millis(100)).await;
 
-    let http_client = httpc_test::new_client(format!("http://{}", DEFAULT_HOST_ADDRESS)).unwrap();
+    let http_client = httpc_test::new_client(format!("http://{}", LOCAL_HOST_8080)).unwrap();
 
     for file_path in FILE_PATHS {
         info!("trying to get {}", file_path);
@@ -82,16 +69,21 @@ async fn tower_serve_dir() {
 
 #[tokio::test]
 async fn tiny_url() {
-    initialize_stdout_subscriber();
+    initialize_stdout_subscriber(Level::TRACE);
 
-    tokio::spawn(servers::tiny_url::TinyUrlServer::from_env_or_default().run());
+    tokio::spawn(async {
+        info!("starting tiny_url server");
+        servers::tiny_url::TinyUrlServer::from_env_or_default()
+            .run()
+            .await
+            .unwrap()
+    });
     sleep(Duration::from_millis(100)).await;
 
     let client = Client::new();
 
     let response = client
-        .post(format!("http://{}/create-url", DEFAULT_HOST_ADDRESS))
-        .body("https://www.euclideanspace.com/maths/geometry/trig/functions/index.htm")
+        .post(format!("http://{LOCAL_HOST_8080}/create-ur/?long-url={EXAMPLE_URL}"))
         .send()
         .await
         .unwrap()
@@ -104,7 +96,7 @@ async fn tiny_url() {
     debug!("{} {}", status, tiny_url);
 
     let response = client
-        .get(format!("http://{}/{}", DEFAULT_HOST_ADDRESS, tiny_url))
+        .get(format!("http://{LOCAL_HOST_8080}/{tiny_url}"))
         .send()
         .await
         .unwrap()
@@ -112,7 +104,12 @@ async fn tiny_url() {
         .unwrap();
 
     let status = response.status();
-    let long_url = response.text().await.unwrap();
+    let long_url = response
+        .headers()
+        .get("location")
+        .unwrap()
+        .to_str()
+        .unwrap();
 
     debug!("{} {}", status, long_url);
 }
