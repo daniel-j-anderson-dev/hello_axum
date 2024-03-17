@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use reqwest::Client;
-use serde_json::json;
 use tokio::time::sleep;
 use tracing::{debug, error, info, warn, Level};
 
@@ -92,9 +91,7 @@ async fn tiny_url() {
 
     let response = client
         .post(format!("http://{}/create-url", DEFAULT_HOST_ADDRESS))
-        .json(&json!({
-            "long-url": "a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z"
-        }))
+        .body("https://www.euclideanspace.com/maths/geometry/trig/functions/index.htm")
         .send()
         .await
         .unwrap()
@@ -113,7 +110,7 @@ async fn tiny_url() {
         .unwrap()
         .error_for_status()
         .unwrap();
-    
+
     let status = response.status();
     let long_url = response.text().await.unwrap();
 
