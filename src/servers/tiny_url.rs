@@ -11,7 +11,7 @@ use axum::{
     response::{Redirect, Response},
 };
 use serde::Deserialize;
-use tracing::{debug, error, trace};
+use tracing::{error, trace};
 use url::Url;
 
 use crate::{servers::*, LOCAL_HOST_8080};

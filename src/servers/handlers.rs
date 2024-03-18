@@ -2,7 +2,7 @@
 
 use axum::{debug_handler, extract::Path, http::StatusCode, response::Response, Extension};
 use tokio::{fs::File, io::AsyncReadExt};
-use tracing::{debug, error, trace};
+use tracing::{error, trace};
 
 /// Return the file data or a status code.
 /// - This function logs any status code returned with [warn]
