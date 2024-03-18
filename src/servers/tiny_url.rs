@@ -42,7 +42,7 @@ impl TinyUrlServer {
     }
 
     pub fn new(host_address: &str) -> Result<Self, std::net::AddrParseError> {
-        debug!("Creating new TinyUrlServer");
+        trace!("Creating new TinyUrlServer");
 
         let host_address = match host_address.parse() {
             Ok(parsed_address) => parsed_address,
@@ -108,12 +108,7 @@ pub async fn create_entry(
     State(AppData(long_to_tiny_map, host_addr)): State<AppData>,
     Query(Params { long_url }): Query<Params>,
 ) -> Result<Response<String>, StatusCode> {
-    debug!("POST /create-url {}", long_url);
-
-    // let long_url = long_url.parse().map_err(|e| {
-    //     error!("Failed to parse long_url: {}", e);
-    //     StatusCode::BAD_REQUEST
-    // })?;
+    trace!("POST /create-url {}", long_url);
 
     let suffix = generate_suffix();
 
@@ -129,11 +124,11 @@ pub async fn create_entry(
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
 
-    debug!("Added {} -> {}", tiny_url, long_url);
+    trace!("Added {} -> {}", tiny_url, long_url);
 
     match long_to_tiny_map.entry(long_url) {
         Entry::Occupied(o_e) => {
-            debug!("Entry already made suffix: \"{}\"", o_e.get());
+            trace!("Entry already made suffix: \"{}\"", o_e.get());
         }
         Entry::Vacant(v_e) => {
             v_e.insert(suffix);

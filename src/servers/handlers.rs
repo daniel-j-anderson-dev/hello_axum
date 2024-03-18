@@ -2,7 +2,7 @@
 
 use axum::{debug_handler, extract::Path, http::StatusCode, response::Response, Extension};
 use tokio::{fs::File, io::AsyncReadExt};
-use tracing::{debug, error};
+use tracing::{debug, error, trace};
 
 /// Return the file data or a status code.
 /// - This function logs any status code returned with [warn]
@@ -33,13 +33,13 @@ pub async fn serve_file(
 ) -> Result<Response, StatusCode> {
     let file_path = format!("{}/{}", root_dir, file_path);
 
-    debug!("File requested ({})", file_path);
+    trace!("File requested ({})", file_path);
 
     let file_data = open_file(&file_path).await?;
 
     let response = Response::new(file_data.into());
 
-    debug!("Returning file ({})", file_path);
+    trace!("Returning file ({})", file_path);
 
     return Ok(response);
 }
@@ -48,13 +48,13 @@ pub async fn serve_file(
 pub async fn root_index(Extension(root_dir): Extension<String>) -> Result<Response, StatusCode> {
     let file_path = format!("{}/index.html", root_dir);
 
-    debug!("Root index requested ({})", file_path);
+    trace!("Root index requested ({})", file_path);
 
     let file_data = open_file(&file_path).await?;
 
     let response = Response::new(file_data.into());
 
-    debug!("Returning root_index ({})", file_path);
+    trace!("Returning root_index ({})", file_path);
 
     return Ok(response);
 }
