@@ -3,6 +3,7 @@ use std::time::Duration;
 use reqwest::Client;
 use tokio::time::sleep;
 use tracing::{debug, error, info, warn, Level};
+use url::Url;
 
 use super::*;
 
@@ -82,8 +83,9 @@ async fn tiny_url() {
 
     let client = Client::new();
 
+    let create_endpoint = format!("http://{LOCAL_HOST_8080}/create-ur/?long-url={EXAMPLE_URL}").parse::<Url>().unwrap();
     let response = client
-        .post(format!("http://{LOCAL_HOST_8080}/create-ur/?long-url={EXAMPLE_URL}"))
+        .post(create_endpoint)
         .send()
         .await
         .unwrap()
@@ -95,8 +97,9 @@ async fn tiny_url() {
 
     debug!("{} {}", status, tiny_url);
 
+    let redirect_endpoint = format!("http://{LOCAL_HOST_8080}/{tiny_url}").parse::<Url>().unwrap();
     let response = client
-        .get(format!("http://{LOCAL_HOST_8080}/{tiny_url}"))
+        .get(redirect_endpoint)
         .send()
         .await
         .unwrap()

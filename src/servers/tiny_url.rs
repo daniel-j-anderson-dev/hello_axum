@@ -14,7 +14,7 @@ use serde::Deserialize;
 use tracing::{error, trace};
 use url::Url;
 
-use crate::{servers::*, LOCAL_HOST_8080};
+use crate::{servers::*, EXAMPLE_URL, LOCAL_HOST_8080};
 
 /// A REST API server to minimize urls
 /// # Endpoints
@@ -108,7 +108,7 @@ pub async fn create_entry(
     State(AppData(long_to_tiny_map, host_addr)): State<AppData>,
     Query(Params { long_url }): Query<Params>,
 ) -> Result<Response<String>, StatusCode> {
-    trace!("POST /create-url {}", long_url);
+    trace!("Request: POST /create-url {}", long_url);
 
     let suffix = generate_suffix();
 
@@ -123,8 +123,6 @@ pub async fn create_entry(
             error!("Failed to parse tiny_url: {}", e);
             StatusCode::INTERNAL_SERVER_ERROR
         })?;
-
-    trace!("Added {} -> {}", tiny_url, long_url);
 
     match long_to_tiny_map.entry(long_url) {
         Entry::Occupied(o_e) => {
